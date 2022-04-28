@@ -85,48 +85,59 @@ void servoBoom()
 //------------------------------------------------------------------------------------
 
 //-----------------------------------Buzzer------------------------------------------
+int state = 0;
+int Explosion_1 = 0;
+int Is_1 = 0;
+int Art_1 = 0;
+
 void Explosion()
 {
+	if(Explosion_1==0){
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(500);
+	  HAL_Delay(100);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(500);
+	  HAL_Delay(800);
+	}
 }
 
 void Is()
 {
+	if(Is_1==0){
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(250);
+	  HAL_Delay(100);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(250);
+	  HAL_Delay(300);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(250);
+	  HAL_Delay(100);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(250);
+	  HAL_Delay(300);
+	}
 }
 
 void Art()
 {
+	if(Art_1==0){
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
+	  HAL_Delay(50);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(100);
+	  HAL_Delay(50);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
+	  HAL_Delay(50);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(100);
+	  HAL_Delay(50);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
+	  HAL_Delay(50);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(100);
+	  HAL_Delay(50);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
+	  HAL_Delay(50);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(100);
+	  HAL_Delay(50);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
+	  HAL_Delay(50);
 	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(100);
+	  HAL_Delay(50);
+	}
 }
 //------------------------------------------------------------------------------------
 
@@ -154,6 +165,42 @@ static void MX_TIM3_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
+
+void Burzzer()
+{
+	if(sec < 14)
+		  {
+			  Explosion();
+			  if(sec == 9)
+			  	  {
+				  Explosion_1 = 1;
+			  	  }
+		  }
+}
+
+void Burzzer1()
+{
+	if(sec < 10)
+		{
+			Is();
+			if(sec == 4)
+				{
+				Is_1 = 1;
+				}
+		 }
+}
+
+void Burzzer2()
+{
+	if(sec < 5)
+		{
+			Art();
+			if(sec == 0)
+				{
+				Art_1 = 1;
+				}
+		 }
+}
 
 /* USER CODE END PFP */
 
@@ -221,7 +268,12 @@ int main(void)
   start();
   servoReady();
 
-  int state = 0;
+	//------------- burzzer
+	Explosion_1 = 0;
+	Is_1 = 0;
+	Art_1 = 0;
+	//------------------
+
 
   /* USER CODE END 2 */
 
@@ -246,35 +298,9 @@ int main(void)
 		  flag_sw1 = 1;
 	  }
 
-		if(sec < 14)
-		{
-			Explosion();
-			if(sec == 10)
-			{
-				HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-				state = 1;
-			}
-		}
-
-		if(state == 1)
-		{
-			Is();
-			if(sec == 5)
-			{
-			HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-			state = 2;
-			}
-		}
-
-		if(state == 2)
-		{
-			Art();
-			if(sec == 0)
-			{
-			HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-			}
-		}
-
+	  Burzzer();
+	  Burzzer1();
+	  Burzzer2();
 
     /* USER CODE END WHILE */
 
@@ -677,6 +703,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		sec = 15;
 		//------------ servo
 		servoReady();
+		//------------------
+
+		//------------- burzzer
+		Explosion_1 = 0;
+		Is_1 = 0;
+		Art_1 = 0;
 		//------------------
 	}
 
