@@ -49,7 +49,11 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 uint8_t sec = 15;
 uint8_t flag_sw1;
+uint8_t flag_tm1;
 char Sec[10];
+int states = 0;
+int count = 0;
+unsigned long cnt = 0;
 
 /* USER CODE END PV */
 
@@ -60,7 +64,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
-
+uint32_t HAL_GetTick(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -112,6 +116,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -319,11 +325,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(sw1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : reset_Pin */
-  GPIO_InitStruct.Pin = reset_Pin;
+  /*Configure GPIO pins : reset_Pin timer_Pin */
+  GPIO_InitStruct.Pin = reset_Pin|timer_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(reset_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
@@ -343,17 +349,75 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	if(GPIO_Pin == sw1_Pin)
 	{
 		flag_sw1 = 1;
-		sec = 15;
+		count =0;
+		cnt = 0;
+		states = 0;
+
 	}
 	if(GPIO_Pin == reset_Pin)
 	{
 		flag_sw1 = 0;
-		sec =0;
+		sec = 15;
+		count =0;
+		cnt = 0;
+		states = 0;
+
 	}
+	if(GPIO_Pin == timer_Pin)
+		{
+		flag_tm1 =1;
+		if( flag_tm1 == 1 && count ==0 && cnt ==0)
+			{
+				cnt = HAL_GetTick();
+				count++;
+			}
+		  else if(HAL_GetTick()> cnt+300 && cnt>0)
+			{
+
+				states = count;
+				count =0;
+				cnt = 0;
+				flag_tm1 = 0;
+			}
+		  else if(flag_tm1 == 1 && HAL_GetTick()>cnt+50)
+			{
+				cnt = HAL_GetTick();
+				count++;
+				if(count >= 3)
+				{
+					count =3;
+				}
+			}
+		  switch(states)
+			{
+//		  case 0:
+//			  break;
+			case 1 :
+				sec = 10;
+				count = 0;
+				states = 0;
+				break;
+
+			case 2 :
+				sec = 15;
+				count = 0;
+				states = 0;
+				break;
+			case 3 :
+				sec = 20;
+				count = 0;
+				states = 0;
+				break;
+			}
+		}
+
+
+
 
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+
 	lcd_put_cur(0, 0);
 	lcd_send_string("STATUS:");
 	lcd_put_cur(0, 7);
@@ -373,10 +437,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			lcd_put_cur(0, 7);
 			lcd_send_string("!!BOOOM!!");
 			sec = 0;
-
 		}
 	}
-
 
 }
 void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
