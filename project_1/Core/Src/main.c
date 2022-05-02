@@ -45,6 +45,7 @@ DMA_HandleTypeDef hdma_adc1;
 
 I2C_HandleTypeDef hi2c1;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
@@ -62,6 +63,14 @@ int adc_value[3];
 int xAng = 0;
 int yAng = 0;
 int zAng = 0;
+
+void mapping()
+{
+	xAng = map(adc_value[0], 1554, 2356, -90, 90);
+	yAng = map(adc_value[1], 1544, 2378, -90, 90);
+	zAng = map(adc_value[2], 1723, 3346, -90, 90);
+}
+
 //-------------------------------------------------------------------------------------
 
 //------------------------------------ Count down------------------------------------
@@ -85,68 +94,20 @@ void servoBoom()
 //------------------------------------------------------------------------------------
 
 //-----------------------------------Buzzer------------------------------------------
+
+
+int time = 10;
 int state = 0;
-int Explosion_1 = 0;
-int Is_1 = 0;
-int Art_1 = 0;
 
-void Explosion()
-{
-	if(Explosion_1==0){
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(800);
-	}
-}
-
-void Is()
-{
-	if(Is_1==0){
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(300);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(300);
-	}
-}
-
-void Art()
-{
-	if(Art_1==0){
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(50);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(50);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(50);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(50);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(50);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(50);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(50);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(50);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_SET);
-	  HAL_Delay(50);
-	  HAL_GPIO_WritePin(GPIOC, buzzer_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(50);
-	}
-}
 //------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------
 void start()
 {
 	lcd_init();
-	HAL_TIM_Base_Start_IT(&htim2);
-	HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_1);
+	HAL_TIM_Base_Start_IT(&htim2); // LCD
+	HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_1); // LCD
+	HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_2); // buzzer
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // setvo1 motor
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2); // setvo2 motor
 	HAL_ADC_Start_DMA(&hadc1, adc_value, 3); // Gyro
@@ -164,43 +125,12 @@ static void MX_DMA_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
-void Burzzer()
-{
-	if(sec < 14)
-		  {
-			  Explosion();
-			  if(sec == 9)
-			  	  {
-				  Explosion_1 = 1;
-			  	  }
-		  }
-}
+//---------------------------------------Burzzer---------------------------
 
-void Burzzer1()
-{
-	if(sec < 10)
-		{
-			Is();
-			if(sec == 4)
-				{
-				Is_1 = 1;
-				}
-		 }
-}
-
-void Burzzer2()
-{
-	if(sec < 5)
-		{
-			Art();
-			if(sec == 0)
-				{
-				Art_1 = 1;
-				}
-		 }
-}
+//---------------------------------------------------------------------------
 
 /* USER CODE END PFP */
 
@@ -263,17 +193,11 @@ int main(void)
   MX_TIM3_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   start();
   servoReady();
-
-	//------------- burzzer
-	Explosion_1 = 0;
-	Is_1 = 0;
-	Art_1 = 0;
-	//------------------
-
 
   /* USER CODE END 2 */
 
@@ -281,26 +205,17 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //-------------------------------- Gyro mappoing
-	  xAng = map(adc_value[0], 1554, 2356, -90, 90);
-	  yAng = map(adc_value[1], 1544, 2378, -90, 90);
-	  zAng = map(adc_value[2], 1723, 3346, -90, 90);
-	  //------------------------------------------------
+	  //-------------------------------- Gyro -----------
+	  mapping(); //Gyro mappoing
 
-	  //--------------------------------- Gyro -> putty
-	  printf("X_Value : %ld, Y_Value : %ld,  Z_Value : %ld\r\n", xAng, yAng, zAng);
+	  printf("X_Value : %ld, Y_Value : %ld,  Z_Value : %ld\r\n", xAng, yAng, zAng); //putty
 	  HAL_Delay(200);
-	  //-----------------------------------------------
 
-
-	  if(xAng > 30)
+	  if(xAng > 80) //Gyro -> count down start
 	  {
 		  flag_sw1 = 1;
 	  }
-
-	  Burzzer();
-	  Burzzer1();
-	  Burzzer2();
+	  //--------------------------------------------------
 
     /* USER CODE END WHILE */
 
@@ -450,6 +365,81 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 640-1;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 50000-1;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
 
 }
 
@@ -641,9 +631,6 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -656,13 +643,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : buzzer_Pin */
-  GPIO_InitStruct.Pin = buzzer_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(buzzer_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : sw1_Pin */
   GPIO_InitStruct.Pin = sw1_Pin;
@@ -695,58 +675,76 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	{
 		flag_sw1 = 1;
 		sec = 15;
+		//------------ servo reset
+		servoReady();
+		//------------------
 	}
 
 	if(GPIO_Pin == reset_Pin)
 	{
 		flag_sw1 = 0;
 		sec = 15;
-		//------------ servo
+		//------------ servo reset
 		servoReady();
-		//------------------
-
-		//------------- burzzer
-		Explosion_1 = 0;
-		Is_1 = 0;
-		Art_1 = 0;
 		//------------------
 	}
 
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	lcd_put_cur(0, 0);
-	lcd_send_string("STATUS:");
-	lcd_put_cur(0, 7);
-	lcd_send_string("READY....");
+		lcd_put_cur(0, 0);
+		lcd_send_string("STATUS:");
+		lcd_put_cur(0, 7);
+		lcd_send_string("READY....");
 
-	if(flag_sw1 == 1)
-	{
-		if(sec > 0)
+		if(flag_sw1 == 1)
 		{
-			sec--;
-			lcd_put_cur(0, 7);
-			lcd_send_string("COUNTDOWN");
-		}
+			if(sec > 0)
+			{
+				sec--;
+				lcd_put_cur(0, 7);
+				lcd_send_string("COUNTDOWN");
+			}
 
-		else if (sec ==0)
-		{
-			lcd_put_cur(0, 7);
-			lcd_send_string("!!BOOOM!!");
-			sec = 0;
-			//------------ servo
-			servoBoom();
-			//------------------
+			else if (sec ==0)
+			{
+				lcd_put_cur(0, 7);
+				lcd_send_string("!!BOOOM!!");
+				sec = 0;
+				//------------ servo
+				servoBoom();
+				//------------------
+			}
 		}
-	}
 }
+
 void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
 {
+
 		lcd_put_cur(1,0);
 		sprintf(Sec,"TIME:%02d",sec);
 		lcd_send_string(Sec);
 }
 
+
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+{
+	if((sec <= 14)&&(sec>7))
+	{
+		TIM1->CCR2 = 5000-1;
+		GPIOA->BSRR = 0xffff;
+		TIM1->ARR -= 2000;
+	}
+	if((sec <= 7)&&(sec>0))
+	{
+		TIM1->ARR -= 4500;
+	}
+	if(sec == 0)
+		{
+		TIM1->CCR2 = 0;
+		TIM1->ARR = 50000-1;
+		}
+}
 
 /* USER CODE END 4 */
 
