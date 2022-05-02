@@ -74,9 +74,9 @@ void mapping()
 //-------------------------------------------------------------------------------------
 
 //------------------------------------ Count down------------------------------------
-uint8_t sec = 15;
+uint8_t secMills = 15;
 uint8_t flag_sw1;
-char Sec[10];
+char secToString[10]; // convert second(millis) to second(string)
 //------------------------------------------------------------------------------------
 
 //------------------------------------ Servo motor ------------------------------------
@@ -205,6 +205,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
 	  //-------------------------------- Gyro -----------
 	  mapping(); //Gyro mappoing
 
@@ -216,10 +219,6 @@ int main(void)
 		  flag_sw1 = 1;
 	  }
 	  //--------------------------------------------------
-
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -674,7 +673,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	if(GPIO_Pin == sw1_Pin)
 	{
 		flag_sw1 = 1;
-		sec = 15;
+		secMills = 15;
 		//------------ servo reset
 		servoReady();
 		//------------------
@@ -683,10 +682,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	if(GPIO_Pin == reset_Pin)
 	{
 		flag_sw1 = 0;
-		sec = 15;
-		//------------ servo reset
+		secMills = 15;
+		//------------ reset state&time(servo&buzzer)
 		servoReady();
+		TIM1->CCR2 = 0;
 		//------------------
+
+
 	}
 
 }
@@ -699,18 +701,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 		if(flag_sw1 == 1)
 		{
-			if(sec > 0)
+			if(secMills > 0)
 			{
-				sec--;
+				secMills--;
 				lcd_put_cur(0, 7);
 				lcd_send_string("COUNTDOWN");
 			}
 
-			else if (sec ==0)
+			else if (secMills ==0)
 			{
 				lcd_put_cur(0, 7);
 				lcd_send_string("!!BOOOM!!");
-				sec = 0;
+				secMills = 0;
 				//------------ servo
 				servoBoom();
 				//------------------
@@ -722,24 +724,24 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
 		lcd_put_cur(1,0);
-		sprintf(Sec,"TIME:%02d",sec);
-		lcd_send_string(Sec);
+		sprintf(secToString,"TIME:%02d",secMills);
+		lcd_send_string(secToString);
 }
 
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
-	if((sec <= 14)&&(sec>7))
+	if((secMills <= 14)&&(secMills>7))
 	{
 		TIM1->CCR2 = 5000-1;
 		GPIOA->BSRR = 0xffff;
 		TIM1->ARR -= 2000;
 	}
-	if((sec <= 7)&&(sec>0))
+	if((secMills <= 7)&&(secMills>0))
 	{
 		TIM1->ARR -= 4500;
 	}
-	if(sec == 0)
+	if(secMills == 0)
 		{
 		TIM1->CCR2 = 0;
 		TIM1->ARR = 50000-1;

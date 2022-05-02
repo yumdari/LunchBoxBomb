@@ -68,20 +68,23 @@ void Error_Handler(void);
 #define USART_RX_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
-#define BUZZER_Pin GPIO_PIN_8
-#define BUZZER_GPIO_Port GPIOC
-#define START_BUTTON_Pin GPIO_PIN_8
-#define START_BUTTON_GPIO_Port GPIOA
-#define START_BUTTON_EXTI_IRQn EXTI9_5_IRQn
+#define SW1_Pin GPIO_PIN_8
+#define SW1_GPIO_Port GPIOA
+#define SW1_EXTI_IRQn EXTI9_5_IRQn
+#define BUZZER_Pin GPIO_PIN_9
+#define BUZZER_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
-#define RESET_BUTTON_Pin GPIO_PIN_4
-#define RESET_BUTTON_GPIO_Port GPIOB
-#define RESET_BUTTON_EXTI_IRQn EXTI4_IRQn
+#define RESET_Pin GPIO_PIN_4
+#define RESET_GPIO_Port GPIOB
+#define RESET_EXTI_IRQn EXTI4_IRQn
+#define TIMER_Pin GPIO_PIN_5
+#define TIMER_GPIO_Port GPIOB
+#define TIMER_EXTI_IRQn EXTI9_5_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
