@@ -82,6 +82,9 @@ void Error_Handler(void);
 #define reset_Pin GPIO_PIN_4
 #define reset_GPIO_Port GPIOB
 #define reset_EXTI_IRQn EXTI4_IRQn
+#define timer_Pin GPIO_PIN_5
+#define timer_GPIO_Port GPIOB
+#define timer_EXTI_IRQn EXTI9_5_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

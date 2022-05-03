@@ -82,8 +82,8 @@ char Sec[10];
 //------------------------------------ Servo motor ------------------------------------
 void servoReady()
 {
-	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 2000); //Servo1 1ms PWM - 90defree
-	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 1000); //setvo2 1ms PWM - 0defree
+	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 1750); //Servo1 1ms PWM - 90defree
+	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 1250); //setvo2 1ms PWM - 0defree
 }
 
 void servoBoom()
@@ -94,7 +94,6 @@ void servoBoom()
 //------------------------------------------------------------------------------------
 
 //-----------------------------------Buzzer------------------------------------------
-
 
 int time = 10;
 int state = 0;
@@ -127,11 +126,6 @@ static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
-
-//---------------------------------------Burzzer---------------------------
-
-//---------------------------------------------------------------------------
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -668,7 +662,6 @@ static void MX_GPIO_Init(void)
 
 }
 
-/* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == sw1_Pin)
